@@ -1,0 +1,8 @@
+{
+  "campusCode": "CAM-SA-07",
+  "apiBasePath": "/api/v3/sa/",
+  "colors": {
+    "primary": "#33691E",
+    "secondary": "#FFFFFF"
+  }
+}
