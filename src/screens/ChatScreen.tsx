@@ -5,7 +5,7 @@ import { io, Socket } from 'socket.io-client';
 import { jwtDecode } from 'jwt-decode';
 
 // EXACT SAME IP AS YOUR AUTH SCREEN
-const SERVER_URL = 'http://10.27.46.162:5000';
+const SERVER_URL = 'http://192.168.0.199:5000';
 
 interface Message {
   _id?: string;

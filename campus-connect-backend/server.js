@@ -1,9 +1,12 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const http = require('http'); // 1. Import native HTTP module
-const { Server } = require('socket.io'); // 2. Import Socket.io
+const http = require('http'); 
+const { Server } = require('socket.io'); 
 require('dotenv').config();
+
+// Import Models
+const Message = require('./models/Message');
 
 const app = express();
 
@@ -15,12 +18,13 @@ app.use(express.json());
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB Cluster Connected - Group 7 Database Online'))
   .catch((err) => {
-    console.error('❌ MongoDB Connection Error. Is MongoDB running locally?', err.message);
+    console.error('❌ MongoDB Connection Error:', err.message);
     process.exit(1);
   });
 
-// Mount Authentication Routes
+// Mount REST Routes
 app.use('/api/v3/sa/auth', require('./routes/auth'));
+app.use('/api/v3/sa/chat', require('./routes/chat')); // The missing piece!
 
 // Health Check Route
 app.get('/api/v3/sa/health', (req, res) => {
@@ -35,17 +39,42 @@ app.get('/api/v3/sa/health', (req, res) => {
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", // Allows your Expo app to connect without CORS blocking
+    origin: "*", 
     methods: ["GET", "POST"]
   }
 });
 
-// Real-time Chat Connection Listener
+// Real-time Chat Engine
 io.on('connection', (socket) => {
   console.log(`⚡ A student device connected: ${socket.id}`);
-  
-  // This is where we will add the typing indicators and message broadcasts later
-  
+
+  // 1. Join a specific chat room
+  socket.on('join_room', (room) => {
+    socket.join(room);
+    console.log(`User ${socket.id} joined room: ${room}`);
+  });
+
+  // 2. Listen for new messages
+  socket.on('send_message', async (data) => {
+    try {
+      // Save the message directly to MongoDB cloud
+      const newMessage = new Message({
+        senderId: data.senderId,
+        senderName: data.senderName,
+        text: data.text,
+        room: data.room
+      });
+      await newMessage.save();
+
+      // Broadcast the message to everyone else in that room INSTANTLY
+      socket.to(data.room).emit('receive_message', data);
+      console.log(`Message broadcasted in ${data.room} by ${data.senderName}`);
+    } catch (err) {
+      console.error('Error saving message:', err.message);
+    }
+  });
+
+  // 3. Handle Disconnects
   socket.on('disconnect', () => {
     console.log(`🔌 Device disconnected: ${socket.id}`);
   });

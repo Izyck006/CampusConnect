@@ -14,7 +14,7 @@ const AuthScreen = () => {
   const [password, setPassword] = useState('');
 
   // REPLACE THIS WITH YOUR PC'S ACTUAL IPv4 ADDRESS
-  const API_BASE_URL = 'http://10.27.46.162:5000/api/v3/sa/auth';
+  const API_BASE_URL = 'http://192.168.0.199:5000/api/v3/sa/auth';
 
   const handleAuth = async () => {
     if (!studentId || !password || (!isLogin && !name)) {
