@@ -21,12 +21,12 @@ const UserSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-// Modern Pre-save hook (No 'next' callback needed)
+
 UserSchema.pre('save', async function() {
-  // If the password hasn't changed, just exit the function
+
   if (!this.isModified('password')) return;
   
-  // Otherwise, hash it
+ 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });

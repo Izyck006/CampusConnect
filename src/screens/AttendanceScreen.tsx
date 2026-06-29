@@ -2,19 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import * as Location from 'expo-location';
 
-// Target Coordinates (Matches the center of your seeded campus data)
+
 const CAMPUS_LAT = 11.9815;
 const CAMPUS_LNG = 8.4230;
-const MAX_DISTANCE_METERS = 500; // Allow sign-in within 500 meters
+const MAX_DISTANCE_METERS = 500; 
 
 const AttendanceScreen = () => {
   const [isChecking, setIsChecking] = useState(false);
   const [locationStatus, setLocationStatus] = useState<'idle' | 'in_bounds' | 'out_of_bounds'>('idle');
   const [distanceInfo, setDistanceInfo] = useState<number | null>(null);
 
-  // Helper function to calculate distance in meters between two GPS coordinates
+  
   const getDistanceFromLatLonInMeters = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371e3; // Earth's radius in meters
+    const R = 6371e3; 
     const dLat = (lat2 - lat1) * (Math.PI / 180);
     const dLon = (lon2 - lon1) * (Math.PI / 180);
     const a = 
@@ -30,18 +30,16 @@ const AttendanceScreen = () => {
     setLocationStatus('idle');
 
     try {
-      // 1. Ask the user for GPS hardware permissions
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission Denied', 'Campus Connect needs location access to verify attendance.');
+        Alert.alert('Permission Denied', 'Campus Connect needs you to be in the location to verify attendance.');
         setIsChecking(false);
         return;
       }
 
-      // 2. Ping the device's current location
       let location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
       
-      // 3. Calculate distance from campus
+    
       const distance = getDistanceFromLatLonInMeters(
         location.coords.latitude,
         location.coords.longitude,
@@ -51,10 +49,9 @@ const AttendanceScreen = () => {
 
       setDistanceInfo(Math.round(distance));
 
-      // 4. Enforce the Geofence
+      
       if (distance <= MAX_DISTANCE_METERS) {
         setLocationStatus('in_bounds');
-        // Here is where you would normally call your Expo SQLite db.runAsync() to log the attendance!
       } else {
         setLocationStatus('out_of_bounds');
       }
@@ -70,7 +67,7 @@ const AttendanceScreen = () => {
     <View style={styles.container}>
       <View style={styles.headerCard}>
         <Text style={styles.title}>Attendance Tracker</Text>
-        <Text style={styles.subtitle}>Verify your physical presence on campus to log today's attendance.</Text>
+        <Text style={styles.subtitle}>Verify your presence in class to log today's attendance.</Text>
       </View>
 
       <View style={styles.statusContainer}>
@@ -85,14 +82,14 @@ const AttendanceScreen = () => {
           <>
             <Text style={styles.successIcon}>✅</Text>
             <Text style={styles.successText}>Location Verified!</Text>
-            <Text style={styles.distanceText}>You are {distanceInfo}m from the campus center.</Text>
-            <Text style={styles.successSub}>Attendance officially logged.</Text>
+            <Text style={styles.distanceText}>You are {distanceInfo}m from the lecture center.</Text>
+            <Text style={styles.successSub}>Attendance logged.</Text>
           </>
         ) : (
           <>
             <Text style={styles.errorIcon}>❌</Text>
             <Text style={styles.errorText}>Out of Bounds</Text>
-            <Text style={styles.distanceText}>You are {distanceInfo}m away from the campus.</Text>
+            <Text style={styles.distanceText}>You are {distanceInfo}m away from the class.</Text>
             <Text style={styles.errorSub}>You must be within {MAX_DISTANCE_METERS}m to log attendance.</Text>
           </>
         )}

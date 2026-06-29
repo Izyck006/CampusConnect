@@ -8,13 +8,11 @@ const AuthScreen = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   
-  // Form State
   const [name, setName] = useState('');
   const [studentId, setStudentId] = useState('');
   const [password, setPassword] = useState('');
 
-  // REPLACE THIS WITH YOUR PC'S ACTUAL IPv4 ADDRESS
-  const API_BASE_URL = 'http://192.168.0.199:5000/api/v3/sa/auth';
+  const API_BASE_URL = 'http://10.84.8.162:5000/api/v3/sa/auth';
 
   const handleAuth = async () => {
     if (!studentId || !password || (!isLogin && !name)) {
@@ -39,14 +37,11 @@ const AuthScreen = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // Save the JWT to the phone's local storage
         await AsyncStorage.setItem('userToken', data.token);
         
-        // Clear the form
+        
         setPassword('');
         
-        // Navigate to the Dashboard!
-        // We use a quick hack to reset the navigation stack so they can't swipe back to the login screen
         navigation.reset({
           index: 0,
           routes: [{ name: 'Dashboard' as never }],
@@ -70,7 +65,7 @@ const AuthScreen = () => {
       <View style={styles.card}>
         <View style={styles.header}>
           <Text style={styles.title}>Campus Connect</Text>
-          <Text style={styles.subtitle}>Bayero University Kano • Group 7</Text>
+          <Text style={styles.subtitle}>Bayero University Kano</Text>
         </View>
 
         {!isLogin && (

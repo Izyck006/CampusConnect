@@ -18,7 +18,6 @@ const BUK_BUILDINGS = [
 const BUK_USER_SURNAMES = ["Danbatta", "Gwarzo", "Dala", "Kofar-Ruwa", "Tarauni", "Nassarawa"];
 
 export const getDBConnection = async () => {
-  // Expo SQLite 50+ uses openDatabaseAsync
   return await SQLite.openDatabaseAsync(DATABASE_NAME);
 };
 

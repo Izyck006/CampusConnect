@@ -5,44 +5,40 @@ const EmergencyAlertScreen = () => {
   const [isAlertActive, setIsAlertActive] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
 
-  // The Count-Up Timer Hook
   useEffect(() => {
     let timer: ReturnType<typeof setInterval>;
     
     if (isAlertActive) {
-      // Run the timer every 1000ms (1 second) and count UP
+      
       timer = setInterval(() => {
         setElapsedTime(prevTime => prevTime + 1);
       }, 1000);
     }
 
-    // Cleanup function to stop the timer when cancelled or unmounted
     return () => clearInterval(timer);
   }, [isAlertActive]);
 
-  // Helper to format seconds into MM:SS (e.g., 01:05)
-  const formatTime = (seconds: number) => {
+    const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   const confirmEmergency = () => {
-    Vibration.vibrate(500); // Short warning buzz
+    Vibration.vibrate(500);
 
     Alert.alert(
       "⚠️ CONFIRM EMERGENCY",
-      "Broadcast your location to BUK Campus Security?",
+      "Broadcast your location to BUK Security?",
       [
         { text: "Cancel", style: "cancel" },
         { 
           text: "SEND ALERT", 
           style: "destructive",
           onPress: () => {
-            // Intense SOS vibration pattern
             Vibration.vibrate([500, 500, 500, 500, 500]); 
-            setElapsedTime(0); // Reset timer to 0
-            setIsAlertActive(true); // Start the count up
+            setElapsedTime(0);
+            setIsAlertActive(true);
           }
         }
       ]
@@ -52,7 +48,6 @@ const EmergencyAlertScreen = () => {
   const cancelAlert = () => {
     setIsAlertActive(false);
     
-    // Optional: You could save the final `elapsedTime` to your SQLite DB here!
     Alert.alert(
       "Incident Resolved", 
       `The alert was active for ${formatTime(elapsedTime)}. Security stands down.`
@@ -74,7 +69,7 @@ const EmergencyAlertScreen = () => {
       <View style={styles.buttonContainer}>
         {isAlertActive ? (
           <View style={styles.activeState}>
-            <Text style={styles.alertText}>🚨 ALERT ACTIVE 🚨</Text>
+            <Text style={styles.alertText}>ALERT ACTIVE</Text>
             
             <View style={styles.timerBox}>
               <Text style={styles.timerLabel}>AWAITING RESPONDERS</Text>
@@ -96,7 +91,7 @@ const EmergencyAlertScreen = () => {
             onPress={confirmEmergency}
           >
             <View style={styles.sosInner}>
-              <Text style={styles.sosText}>S O S</Text>
+              <Text style={styles.sosText}>ALERT</Text>
               <Text style={styles.sosSubtext}>Tap to Alert Security</Text>
             </View>
           </TouchableOpacity>
@@ -112,7 +107,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F7FA',
   },
   containerActive: {
-    backgroundColor: '#B71C1C', // Deep Red when fully active
+    backgroundColor: '#B71C1C', 
   },
   header: {
     padding: 20,
@@ -199,7 +194,7 @@ const styles = StyleSheet.create({
     fontSize: 72,
     fontWeight: '900',
     color: '#FFFFFF',
-    fontVariant: ['tabular-nums'], // Keeps the numbers from shifting horizontally
+    fontVariant: ['tabular-nums'], 
   },
   infoText: {
     fontSize: 16,

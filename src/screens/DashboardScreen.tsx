@@ -1,79 +1,136 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-
-// Define the navigation types so TypeScript doesn't yell at us
-type TabParamList = {
-  Home: undefined;
-  Chat: undefined;
-};
-type DashboardNavProp = BottomTabNavigationProp<TabParamList, 'Home'>;
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { jwtDecode } from 'jwt-decode';
+import { Ionicons } from '@expo/vector-icons'; 
 
 const DashboardScreen = () => {
-  const navigation = useNavigation<DashboardNavProp>();
+  const navigation = useNavigation();
+  const [userName, setUserName] = useState('Student');
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = await AsyncStorage.getItem('userToken');
+        if (token) {
+          const decoded = jwtDecode(token);
+          setUserName((decoded as any).user.name);
+        }
+      } catch (error) {
+        console.error('Error fetching user data', error);
+      }
+    };
+    fetchUserData();
+  }, []);
+
+  
+  const handleLogout = () => {
+    Alert.alert(
+      "Log Out",
+      "Are you sure you want to securely log out of Campus Connect?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Log Out", 
+          style: "destructive",
+          onPress: async () => {
+           await AsyncStorage.removeItem('userToken');
+            
+           navigation.reset({
+              index: 0,
+              routes: [{ name: 'Auth' as never }],
+            });
+          }
+        }
+      ]
+    );
+  };
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Header Section */}
-      <View style={styles.header}>
-        <Text style={styles.welcomeText}>Welcome back,</Text>
-        <Text style={styles.studentName}>Student (Group 7)</Text>
-        <Text style={styles.universityText}>Bayero University Kano</Text>
-      </View>
-
-      {/* Quick Stats Section */}
-      <View style={styles.statsContainer}>
-        <View style={styles.statBox}>
-          <Text style={styles.statNumber}>3</Text>
-          <Text style={styles.statLabel}>Classes Today</Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        
+       
+        <View style={styles.header}>
+          <View style={styles.headerTopRow}>
+            <View>
+              <Text style={styles.welcomeText}>Welcome back,</Text>
+              <Text style={styles.userName}>{userName}</Text>
+            </View>
+            
+           
+            <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+              <Ionicons name="log-out-outline" size={28} color="#F50057" />
+            </TouchableOpacity>
+          </View>
+          
+          <Text style={styles.universityText}>Bayero University Kano</Text>
         </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statNumber}>98%</Text>
-          <Text style={styles.statLabel}>Attendance</Text>
+
+        
+        <View style={styles.modulesContainer}>
+          <Text style={styles.sectionTitle}>Campus Modules</Text>
+
+          
+          <TouchableOpacity 
+            style={styles.moduleCard}
+            onPress={() => navigation.navigate('Chat' as never)}
+          >
+            <View style={styles.iconContainer}>
+              <Ionicons name="chatbubbles-outline" size={28} color="#33691E" />
+            </View>
+            <View style={styles.moduleTextContainer}>
+              <Text style={styles.moduleTitle}>Campus Chat</Text>
+              <Text style={styles.moduleDescription}>Connect with BUK students and faculty.</Text>
+            </View>
+          </TouchableOpacity>
+
+          
+          <TouchableOpacity 
+            style={styles.moduleCard}
+            onPress={() => navigation.navigate('Schedule' as never)}
+          >
+            <View style={styles.iconContainer}>
+              <Ionicons name="calendar-outline" size={28} color="#33691E" />
+            </View>
+            <View style={styles.moduleTextContainer}>
+              <Text style={styles.moduleTitle}>Smart Scheduling</Text>
+              <Text style={styles.moduleDescription}>View your timetable and room assignments.</Text>
+            </View>
+          </TouchableOpacity>
+
+          
+          <TouchableOpacity 
+            style={styles.moduleCard}
+            onPress={() => navigation.navigate('Attendance' as never)}
+          >
+            <View style={styles.iconContainer}>
+              <Ionicons name="checkmark-done-outline" size={28} color="#33691E" />
+            </View>
+            <View style={styles.moduleTextContainer}>
+              <Text style={styles.moduleTitle}>Attendance Tracker</Text>
+              <Text style={styles.moduleDescription}>Log your presence in your current department.</Text>
+            </View>
+          </TouchableOpacity>
+
+       
+          <TouchableOpacity 
+            style={styles.moduleCard}
+            onPress={() => navigation.navigate('Emergency' as never)}
+          >
+            <View style={styles.iconContainer}>
+              <Ionicons name="warning-outline" size={28} color="#D32F2F" />
+            </View>
+            <View style={styles.moduleTextContainer}>
+              <Text style={[styles.moduleTitle, { color: '#D32F2F' }]}>Emergency Alert</Text>
+              <Text style={styles.moduleDescription}>Instantly broadcast your location to campus security.</Text>
+            </View>
+          </TouchableOpacity>
+
         </View>
-      </View>
-
-      {/* Module Cards */}
-      <View style={styles.modulesContainer}>
-        <Text style={styles.sectionTitle}>Campus Modules</Text>
-
-        <TouchableOpacity 
-          style={styles.card} 
-          onPress={() => navigation.navigate('Chat')}
-        >
-          <Text style={styles.cardTitle}>💬 Campus Chat</Text>
-          <Text style={styles.cardDescription}>Connect with BUK students and faculty.</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={styles.card} 
-          activeOpacity={0.8}
-          onPress={() => navigation.navigate('Schedule' as never)}
-        >
-          <Text style={styles.cardTitle}>📅 Smart Scheduling</Text>
-          <Text style={styles.cardDescription}>View your timetable and room assignments.</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={styles.card} 
-          activeOpacity={0.8}
-          onPress={() => navigation.navigate('Attendance' as never)}
-        >
-          <Text style={styles.cardTitle}>Attendance Tracker</Text>
-          <Text style={styles.cardDescription}>Log your presence in your current department.</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={[styles.card, { borderLeftColor: '#D32F2F' }]} 
-          activeOpacity={0.8}
-          onPress={() => navigation.navigate('Emergency' as never)}
-        >
-          <Text style={[styles.cardTitle, { color: '#D32F2F' }]}>🚨 Emergency Alret</Text>
-          <Text style={styles.cardDescription}>Instantly broadcast your location to campus security.</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -82,58 +139,47 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F7FA',
   },
+  scrollContent: {
+    paddingBottom: 30,
+  },
   header: {
     backgroundColor: '#33691E',
     padding: 25,
     paddingTop: 40,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
+    marginBottom: 25,
   },
+  
+  headerTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  logoutButton: {
+    padding: 5,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)', 
+    borderRadius: 50,
+  },
+  
   welcomeText: {
     color: '#E8F5E9',
     fontSize: 16,
+    marginBottom: 5,
   },
-  studentName: {
+  userName: {
     color: '#FFFFFF',
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
-    marginTop: 5,
   },
   universityText: {
     color: '#C8E6C9',
     fontSize: 14,
-    marginTop: 5,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: -20,
-    paddingHorizontal: 15,
-  },
-  statBox: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 15,
-    width: '45%',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  statNumber: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#33691E',
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#666666',
-    marginTop: 5,
+    fontWeight: '500',
   },
   modulesContainer: {
-    padding: 20,
+    paddingHorizontal: 20,
   },
   sectionTitle: {
     fontSize: 18,
@@ -141,28 +187,37 @@ const styles = StyleSheet.create({
     color: '#333333',
     marginBottom: 15,
   },
-  card: {
+  moduleCard: {
+    flexDirection: 'row',
     backgroundColor: '#FFFFFF',
     padding: 20,
     borderRadius: 15,
     marginBottom: 15,
+    alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-    borderLeftWidth: 4,
-    borderLeftColor: '#33691E',
+    shadowRadius: 5,
+    elevation: 3,
   },
-  cardTitle: {
+  iconContainer: {
+    marginRight: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  moduleTextContainer: {
+    flex: 1,
+  },
+  moduleTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333333',
+    marginBottom: 4,
   },
-  cardDescription: {
+  moduleDescription: {
     fontSize: 13,
     color: '#757575',
-    marginTop: 5,
+    lineHeight: 18,
   },
 });
 

@@ -50,7 +50,7 @@ export default function App() {
     return (
       <SafeAreaView style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#33691E" />
-        <Text style={styles.loadingText}>Initializing Group 7 Data...</Text>
+        <Text style={styles.loadingText}>Initializing Group 7 Data</Text>
       </SafeAreaView>
     );
   }

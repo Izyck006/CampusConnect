@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 
-// Dummy data for the prototype UI
 const SCHEDULE_DATA = [
   {
     id: '1',
@@ -9,7 +8,7 @@ const SCHEDULE_DATA = [
     course: 'Advanced Software Engineering',
     location: 'Faculty of Computing - Room 302',
     type: 'Core',
-    color: '#33691E' // Primary Green
+    color: '#33691E' 
   },
   {
     id: '2',
@@ -17,7 +16,7 @@ const SCHEDULE_DATA = [
     course: 'Introduction to Computing',
     location: 'Faculty of Computing - Room 101',
     type: 'Elective',
-    color: '#F57C00' // Orange for electives
+    color: '#F57C00' 
   },
   {
     id: '3',
@@ -46,7 +45,6 @@ const SmartSchedulingScreen = () => {
               {index !== SCHEDULE_DATA.length - 1 && <View style={styles.line} />}
             </View>
 
-            {/* The Class Card */}
             <TouchableOpacity style={styles.card} activeOpacity={0.9}>
               <Text style={styles.time}>{item.time}</Text>
               <Text style={styles.course}>{item.course}</Text>
@@ -104,7 +102,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#E0E0E0',
     marginTop: 5,
-    marginBottom: -25, // Connects to the next dot
+    marginBottom: -25, 
   },
   card: {
     flex: 1,

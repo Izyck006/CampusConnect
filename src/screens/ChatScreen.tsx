@@ -4,8 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { io, Socket } from 'socket.io-client';
 import { jwtDecode } from 'jwt-decode';
 
-// EXACT SAME IP AS YOUR AUTH SCREEN
-const SERVER_URL = 'http://192.168.0.199:5000';
+const SERVER_URL = 'http://10.84.8.162:5000';
 
 interface Message {
   _id?: string;
@@ -33,19 +32,16 @@ const ChatScreen = () => {
 
   const setupChat = async () => {
     try {
-      // 1. Get the user from the saved Token
-      const token = await AsyncStorage.getItem('userToken');
+     const token = await AsyncStorage.getItem('userToken');
       if (token) {
         const decoded = jwtDecode(token);
         setCurrentUser((decoded as any).user);
       }
 
-      // 2. Fetch the message history from MongoDB
       const response = await fetch(`${SERVER_URL}/api/v3/sa/chat/history/Group%207`);
       const history = await response.json();
       setMessages(history);
 
-      // 3. Connect the live WebSocket
       socketRef.current = io(SERVER_URL);
       
       socketRef.current.emit('join_room', 'Group 7');
@@ -71,11 +67,9 @@ const ChatScreen = () => {
       room: 'Group 7'
     };
 
-    // Broadcast to everyone else
     socketRef.current?.emit('send_message', messageData);
     
-    // Add to our own screen instantly
-    setMessages((prev) => [...prev, messageData]);
+   setMessages((prev) => [...prev, messageData]);
     setInputText('');
   };
 
@@ -100,8 +94,8 @@ const ChatScreen = () => {
   return (
     <KeyboardAvoidingView 
       style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={90}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 90} 
     >
       <FlatList
         ref={flatListRef}
@@ -109,6 +103,7 @@ const ChatScreen = () => {
         keyExtractor={(_, index) => index.toString()}
         renderItem={renderMessage}
         contentContainerStyle={styles.listContent}
+        keyboardShouldPersistTaps="handled" 
         onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
       />
       
@@ -175,7 +170,7 @@ const styles = StyleSheet.create({
   },
   sendButton: {
     marginLeft: 10,
-    backgroundColor: '#33691E',
+    backgroundColor: '#F50057',
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 20,

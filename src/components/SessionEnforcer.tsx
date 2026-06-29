@@ -17,19 +17,17 @@ export default function SessionEnforcer({ children }: SessionEnforcerProps) {
   const authenticateUser = async () => {
     try {
       setIsChecking(true);
-      // 1. Check if the device actually has biometric hardware
+      
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
 
       if (!hasHardware || !isEnrolled) {
-        // If testing on a simulator without face/touch ID set up, we just let it pass
-        // But on your physical phone, this will trigger the real scanner!
-        setIsAuthenticated(true);
+              setIsAuthenticated(true);
         setIsChecking(false);
         return;
       }
 
-      // 2. Trigger the OS fingerprint/FaceID prompt
+   
       const result = await LocalAuthentication.authenticateAsync({
         promptMessage: 'Group 7 Authentication',
         fallbackLabel: 'Use Device Passcode',
