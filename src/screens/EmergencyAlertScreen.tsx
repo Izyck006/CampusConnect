@@ -64,7 +64,7 @@ const EmergencyAlertScreen = () => {
     <View style={[styles.container, isAlertActive && styles.containerActive]}>
       <View style={styles.header}>
         <Text style={[styles.title, isAlertActive && styles.textLight]}>
-          Campus Security
+          Emergency Alert
         </Text>
         <Text style={[styles.subtitle, isAlertActive && styles.textLight]}>
           Emergency Alert

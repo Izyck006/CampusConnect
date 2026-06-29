@@ -1,83 +1,101 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  FlatList, 
-  StyleSheet, 
-  KeyboardAvoidingView, 
-  Platform 
-} from 'react-native';
-import { getDBConnection } from '../database';
+import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { io, Socket } from 'socket.io-client';
+import { jwtDecode } from 'jwt-decode';
 
-// Define the shape of our BUK messages
+// EXACT SAME IP AS YOUR AUTH SCREEN
+const SERVER_URL = 'http://10.27.46.162:5000';
+
 interface Message {
-  id: number;
-  senderId: number;
-  content: string;
-  timestamp?: string;
+  _id?: string;
+  senderId: string;
+  senderName: string;
+  text: string;
+  createdAt?: string;
 }
 
 const ChatScreen = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  const socketRef = useRef<Socket | null>(null);
   const flatListRef = useRef<FlatList>(null);
 
-  // Load messages from Expo SQLite when the screen mounts
   useEffect(() => {
-    loadMessages();
+    setupChat();
+    return () => {
+      if (socketRef.current) socketRef.current.disconnect();
+    };
   }, []);
 
-  const loadMessages = async () => {
+  const setupChat = async () => {
     try {
-      const db = await getDBConnection();
-      // Expo SQLite uses getAllAsync instead of the old transaction callback
-      const results = await db.getAllAsync<Message>(
-        'SELECT * FROM Messages ORDER BY timestamp DESC LIMIT 50'
-      );
-      // Reverse so the newest messages appear at the bottom of the chat
-      setMessages(results.reverse());
+      // 1. Get the user from the saved Token
+      const token = await AsyncStorage.getItem('userToken');
+      if (token) {
+        const decoded = jwtDecode(token);
+        setCurrentUser((decoded as any).user);
+      }
+
+      // 2. Fetch the message history from MongoDB
+      const response = await fetch(`${SERVER_URL}/api/v3/sa/chat/history/Group%207`);
+      const history = await response.json();
+      setMessages(history);
+
+      // 3. Connect the live WebSocket
+      socketRef.current = io(SERVER_URL);
+      
+      socketRef.current.emit('join_room', 'Group 7');
+
+      socketRef.current.on('receive_message', (newMessage: Message) => {
+        setMessages((prev) => [...prev, newMessage]);
+      });
+
     } catch (error) {
-      console.error("Failed to load local messages:", error);
+      console.error('Error setting up chat:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const sendMessage = async () => {
-    if (!inputText.trim()) return;
+  const sendMessage = () => {
+    if (!inputText.trim() || !currentUser) return;
 
-    // 1. Instantly update the UI for a snappy feel (Optimistic UI update)
-    const tempMessage: Message = { 
-      id: Date.now(), 
-      senderId: 99, // 99 represents the current user
-      content: inputText 
+    const messageData = {
+      senderId: currentUser.id,
+      senderName: currentUser.name,
+      text: inputText.trim(),
+      room: 'Group 7'
     };
-    
-    setMessages(prev => [...prev, tempMessage]);
-    setInputText('');
 
-    // 2. Save it to the Expo SQLite database permanently
-    try {
-      const db = await getDBConnection();
-      await db.runAsync(
-        'INSERT INTO Messages (senderId, content) VALUES (?, ?)', 
-        [99, tempMessage.content]
-      );
-    } catch (error) {
-      console.error("Failed to save message to database:", error);
-    }
+    // Broadcast to everyone else
+    socketRef.current?.emit('send_message', messageData);
+    
+    // Add to our own screen instantly
+    setMessages((prev) => [...prev, messageData]);
+    setInputText('');
   };
 
   const renderMessage = ({ item }: { item: Message }) => {
-    const isMe = item.senderId === 99;
+    const isMe = currentUser?.id === item.senderId;
     return (
-      <View style={[styles.messageBubble, isMe ? styles.myBubble : styles.theirBubble]}>
-        <Text style={[styles.messageText, isMe ? styles.myText : styles.theirText]}>
-          {item.content}
-        </Text>
+      <View style={[styles.messageBubble, isMe ? styles.myMessage : styles.theirMessage]}>
+        {!isMe && <Text style={styles.senderName}>{item.senderName}</Text>}
+        <Text style={[styles.messageText, isMe ? styles.myMessageText : {}]}>{item.text}</Text>
       </View>
     );
   };
+
+  if (isLoading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#33691E" />
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView 
@@ -88,19 +106,19 @@ const ChatScreen = () => {
       <FlatList
         ref={flatListRef}
         data={messages}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(_, index) => index.toString()}
         renderItem={renderMessage}
         contentContainerStyle={styles.listContent}
         onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
       />
-
+      
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
+          placeholder="Message Group 7..."
           value={inputText}
           onChangeText={setInputText}
-          placeholder="Message Group 7..."
-          placeholderTextColor="#999"
+          multiline
         />
         <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
           <Text style={styles.sendButtonText}>Send</Text>
@@ -111,44 +129,39 @@ const ChatScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F5F7FA',
-  },
-  listContent: {
-    padding: 15,
-  },
+  container: { flex: 1, backgroundColor: '#F5F7FA' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  listContent: { padding: 15 },
   messageBubble: {
     maxWidth: '80%',
     padding: 12,
     borderRadius: 16,
     marginBottom: 10,
   },
-  myBubble: {
+  myMessage: {
+    backgroundColor: '#33691E',
     alignSelf: 'flex-end',
-    backgroundColor: '#33691E', // Group 7 Primary Green
     borderBottomRightRadius: 4,
   },
-  theirBubble: {
+  theirMessage: {
+    backgroundColor: '#FFFFFF',
     alignSelf: 'flex-start',
-    backgroundColor: '#E0E0E0',
     borderBottomLeftRadius: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  messageText: {
-    fontSize: 16,
-  },
-  myText: {
-    color: '#FFFFFF',
-  },
-  theirText: {
-    color: '#333333',
-  },
+  senderName: { fontSize: 12, color: '#757575', marginBottom: 4, fontWeight: '600' },
+  messageText: { fontSize: 15, color: '#333333' },
+  myMessageText: { color: '#FFFFFF' },
   inputContainer: {
     flexDirection: 'row',
     padding: 10,
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderColor: '#EEEEEE',
+    borderColor: '#E0E0E0',
     alignItems: 'center',
   },
   input: {
@@ -157,20 +170,17 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 15,
     paddingVertical: 10,
+    maxHeight: 100,
     fontSize: 16,
-    marginRight: 10,
   },
   sendButton: {
+    marginLeft: 10,
     backgroundColor: '#33691E',
-    borderRadius: 20,
     paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
+    borderRadius: 20,
   },
-  sendButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
+  sendButtonText: { color: '#FFFFFF', fontWeight: 'bold' },
 });
 
 export default ChatScreen;

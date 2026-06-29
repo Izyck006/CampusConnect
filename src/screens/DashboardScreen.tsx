@@ -69,7 +69,7 @@ const DashboardScreen = () => {
           activeOpacity={0.8}
           onPress={() => navigation.navigate('Emergency' as never)}
         >
-          <Text style={[styles.cardTitle, { color: '#D32F2F' }]}>🚨 Emergency SOS</Text>
+          <Text style={[styles.cardTitle, { color: '#D32F2F' }]}>🚨 Emergency Alret</Text>
           <Text style={styles.cardDescription}>Instantly broadcast your location to campus security.</Text>
         </TouchableOpacity>
       </View>

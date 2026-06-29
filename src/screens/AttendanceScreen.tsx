@@ -69,8 +69,8 @@ const AttendanceScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.headerCard}>
-        <Text style={styles.title}>Geofenced Attendance</Text>
-        <Text style={styles.subtitle}>Verify your physical presence on campus to log today's classes.</Text>
+        <Text style={styles.title}>Attendance Tracker</Text>
+        <Text style={styles.subtitle}>Verify your physical presence on campus to log today's attendance.</Text>
       </View>
 
       <View style={styles.statusContainer}>
@@ -93,7 +93,7 @@ const AttendanceScreen = () => {
             <Text style={styles.errorIcon}>❌</Text>
             <Text style={styles.errorText}>Out of Bounds</Text>
             <Text style={styles.distanceText}>You are {distanceInfo}m away from the campus.</Text>
-            <Text style={styles.errorSub}>You must be within {MAX_DISTANCE_METERS}m to sign in.</Text>
+            <Text style={styles.errorSub}>You must be within {MAX_DISTANCE_METERS}m to log attendance.</Text>
           </>
         )}
       </View>

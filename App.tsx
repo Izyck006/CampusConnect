@@ -7,6 +7,7 @@ import config from './config.json';
 import { getDBConnection, createTables, seedBUKDatabase } from './src/database';
 import SessionEnforcer from './src/components/SessionEnforcer';
 import AppNavigator from './src/navigation/AppNavigator';
+import 'react-native-gesture-handler';
 
 const EXPECTED_CAMPUS_CODE = 'CAM-SA-07';
 const EXPECTED_API_PATH = '/api/v3/sa/';
