@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Campus Connect",
+    "name": "Campus Connect Group 07",
     "slug": "Campus Connect",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -21,7 +21,8 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.CampusConnect"
     },
     "web": {
       "favicon": "./assets/favicon.png"
